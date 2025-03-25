@@ -1,0 +1,19 @@
+# Postgis docker-compose
+services:
+  postgis:
+    build: ./postgis
+    container_name: brazil-wildfires-postgis
+    environment:
+      POSTGRES_USER: '${POSTGIS_USER}'
+      POSTGRES_PASSWORD: '${POSTGIS_PASSWORD}' 
+      POSTGRES_DB: '${POSTGIS_DB}'
+    ports:
+      - "25432:5432"
+    volumes:
+      - ./postgis/data:/var/lib/postgresql/data
+    networks:
+      - brazil-wildfires-network
+
+networks:
+  brazil-wildfires-network:
+    driver: bridge
