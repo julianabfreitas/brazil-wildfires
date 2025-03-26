@@ -18,4 +18,4 @@ services:
 
 networks:
   brazil-wildfires-network:
-    driver: bridge
+    external: true
