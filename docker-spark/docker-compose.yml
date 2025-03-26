@@ -1,0 +1,39 @@
+# Spark docker-compose
+services:
+
+  spark-master:
+    build: ./spark
+    container_name: brazil-wildfires-spark-master
+    hostname: spark-master
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8084:8080" # Web UI do Master
+      - "7077:7077" # Porta do Spark Master
+    volumes:
+      - ../scripts:/opt/airflow/scripts
+    networks:
+      - brazil-wildfires-network
+
+  spark-worker:
+    build: ./spark
+    container_name: brazil-wildfires-spark-worker
+    hostname: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081" # Web UI do Worker
+    volumes:
+      - ../scripts:/opt/airflow/scripts
+    networks:
+      - brazil-wildfires-network
+
+
+networks:
+  brazil-wildfires-network:
+    external: true
