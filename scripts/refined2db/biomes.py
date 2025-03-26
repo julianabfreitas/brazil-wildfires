@@ -2,13 +2,8 @@ import os
 from minio import Minio
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, col, year, month
-from pyspark.sql.types import StringType, DoubleType, TimestampType, IntegerType
-from sedona.register import SedonaRegistrator
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 from sedona.spark import SedonaContext
-from sedona.spark import ST_GeomFromWKT, ST_AsText
-import psycopg2
 
 load_dotenv()
 

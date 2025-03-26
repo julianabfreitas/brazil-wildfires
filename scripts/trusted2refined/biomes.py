@@ -2,13 +2,9 @@ import os
 from minio import Minio
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, col, year, month
-from pyspark.sql.types import StringType, DoubleType, TimestampType, IntegerType
-from sedona.register import SedonaRegistrator
+from pyspark.sql.functions import col
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 from sedona.spark import SedonaContext
-from sedona.spark import ST_GeomFromWKT, ST_AsText
-from ..transforms import normalize_df, validate_lat_lon, validate_fire_risk
 
 load_dotenv()
 
@@ -16,8 +12,8 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
 
-path_raw = 'biome/map'
-path_final = 'biome/map'
+path_trusted = "s3a://trusted/biome/map/"
+path_final = "s3a://refined/dm_bioma/"
 
 minio_client = Minio(
     MINIO_ENDPOINT, 
@@ -43,21 +39,19 @@ spark = (
 
 sedona = SedonaContext.create(spark) 
 
-df_spatial = spark.read.format("shapefile").load(f"s3a://raw//{path_raw}/")
+df_biome = spark.read.format("delta").load(path_trusted)
 
-df_spatial = df_spatial.select(
-    col("ID1").cast(IntegerType()).alias("id"),
-    col("COD_BIOMA").cast(StringType()).alias("code_bioma"),
-    col("NOM_BIOMA").cast(StringType()).alias("nome_bioma"),
-    ST_GeomFromWKT(col("geometry").cast(StringType())).alias("geom") 
+df_final = df_biome.select(
+    col("id").alias("id_bioma"),
+    col("code_bioma").alias("vl_codigo"),
+    col("nome_bioma").alias("des_nome"),
+    col("geom").alias("geom_bioma")
 )
-
-df_final = normalize_df(df_spatial)
 
 (
     df_final
     .write
     .mode("overwrite")
     .format("delta")
-    .save(f"s3a://trusted/{path_final}/")
+    .save(path_final)
 )

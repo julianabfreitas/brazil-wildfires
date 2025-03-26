@@ -1,14 +1,18 @@
 import os
+import sys
 from minio import Minio
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, col, year, month
-from pyspark.sql.types import StringType, DoubleType, TimestampType, IntegerType
-from sedona.register import SedonaRegistrator
+from pyspark.sql.functions import col
+from pyspark.sql.types import StringType, IntegerType
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 from sedona.spark import SedonaContext
-from sedona.spark import ST_GeomFromWKT, ST_AsText
-from ..transforms import normalize_df, validate_lat_lon, validate_fire_risk
+from sedona.spark import ST_GeomFromWKT
+
+# Adiciona a raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from helpers.transforms import normalize_df
 
 load_dotenv()
 
