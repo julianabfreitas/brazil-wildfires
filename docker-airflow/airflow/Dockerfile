@@ -22,7 +22,3 @@ USER airflow
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Dependências Hadoop (MinIo)
-# COPY ../jars/hadoop-aws-3.3.4.jar /usr/local/spark/jars/
-# COPY ../jars/aws-java-sdk-bundle-1.12.262.jar /usr/local/spark/jars/
-
