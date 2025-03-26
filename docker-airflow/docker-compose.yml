@@ -19,7 +19,7 @@ x-airflow-common:
     - ./airflow/config:/opt/airflow/config
     - ./airflow/plugins:/opt/airflow/plugins
     - ../scripts:/opt/airflow/scripts
-    - ../jars:/usr/local/spark/jars
+    - ../docker-spark/spark/jars:/usr/local/spark/jars
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
