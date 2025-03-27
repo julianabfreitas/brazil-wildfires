@@ -1,12 +1,14 @@
 .env
 
+__pycache__
+organizacao-pessoal
+jars
+docker-jupyter
+
 docker-airflow/postgres/data
 docker-airflow/airflow/config
 docker-airflow/airflow/logs
 docker-airflow/airflow/plugins
-docker-airflow/airflow/dags/__pycache__
-
-docker-jupyter
 
 docker-minio/minio/data
 docker-minio/minio/keys
@@ -15,6 +17,4 @@ docker-postgis/postgis/data
 
 
 
-organizacao-pessoal
 
-jars
