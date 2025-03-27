@@ -1,13 +1,16 @@
 import os
+import sys
 from minio import Minio
 from dotenv import load_dotenv
-from datetime import datetime
-from io import BytesIO
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, col, year, month
+from pyspark.sql.functions import col, year, month
 from pyspark.sql.types import StringType, DoubleType, TimestampType, IntegerType
-from transforms import normalize_df, validate_lat_lon, validate_fire_risk
 from delta.tables import DeltaTable
+
+# Adiciona a raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from helpers.transforms import normalize_df, validate_lat_lon, validate_fire_risk
 
 load_dotenv()
 

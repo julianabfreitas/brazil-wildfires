@@ -1,10 +1,15 @@
 import os
+import sys
 from minio import Minio
 from dotenv import load_dotenv
 from datetime import datetime
 from io import BytesIO
 from pyspark.sql import SparkSession
-from ..utils import get_url_content, get_links_by_extension, upload_file_to_minio, get_max_value, update_date_control
+
+# Adiciona a raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from helpers.utils import get_url_content, get_links_by_extension, upload_file_to_minio, get_max_value, update_date_control
 
 load_dotenv()
 
