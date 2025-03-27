@@ -1,8 +1,12 @@
 import os
+import sys
 from minio import Minio
 from dotenv import load_dotenv
-from pyspark.sql import SparkSession
-from ..utils import get_url_content, unzip_upload_to_minio
+
+# Adiciona a raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from helpers.utils import get_url_content, unzip_upload_to_minio
 
 load_dotenv()
 
