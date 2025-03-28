@@ -1,0 +1,16 @@
+# Streamlit docker-compose
+services:
+
+  streamlit:
+    build: ./streamlit
+    container_name: brazil-wildfires-streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit:/app
+    networks:
+      - brazil-wildfires-network
+
+networks:
+  brazil-wildfires-network:
+    external: true
