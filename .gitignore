@@ -1,8 +1,10 @@
 .env
+.streamlit
 
 __pycache__
 organizacao-pessoal
 jars
+
 docker-jupyter
 
 docker-airflow/postgres/data
