@@ -23,7 +23,7 @@ services:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=3G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_CORES=4
     depends_on:
       - spark-master
     ports:
