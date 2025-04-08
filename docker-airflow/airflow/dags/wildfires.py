@@ -17,7 +17,7 @@ with DAG(
     # Tarefa 1: Ingestão de dados
     ingest_task = SparkSubmitOperator(
         task_id='ingest_data',
-        application='/opt/airflow/scripts/2raw/wildfires_hotspots_daily.py',
+        application='/opt/airflow/scripts/2raw/wildfires_daily.py',
         conn_id='spark_default',
         verbose=True,
         jars='/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar'
@@ -26,7 +26,7 @@ with DAG(
     # Tarefa 2: Processamento inicial dos dados
     process_task = SparkSubmitOperator(
         task_id='process_data',
-        application='/opt/airflow/scripts/raw2trusted/wildfires_hotspots.py',
+        application='/opt/airflow/scripts/raw2trusted/wildfires.py',
         conn_id='spark_default',
         verbose=True,
         jars='/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar,/usr/local/spark/jars/delta-spark_2.12-3.2.0.jar,/usr/local/spark/jars/delta-storage-3.2.0.jar,/usr/local/spark/jars/sedona-spark-shaded-3.5_2.12-1.7.0.jar,/usr/local/spark/jars/geotools-wrapper-1.7.0-28.5.jar'
@@ -35,20 +35,20 @@ with DAG(
     # Tarefa 3: Refinamento dos dados
     refine_task = SparkSubmitOperator(
         task_id='refine_data',
-        application='/opt/airflow/scripts/trusted2refined/biomes.py',
+        application='/opt/airflow/scripts/trusted2refined/wildfires.py',
         conn_id='spark_default',
         verbose=True,
         jars='/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar,/usr/local/spark/jars/delta-spark_2.12-3.2.0.jar,/usr/local/spark/jars/delta-storage-3.2.0.jar,/usr/local/spark/jars/sedona-spark-shaded-3.5_2.12-1.7.0.jar,/usr/local/spark/jars/geotools-wrapper-1.7.0-28.5.jar'
     )
 
     # # Tarefa 4: Carregar os dados no banco de dados
-    # load_task = SparkSubmitOperator(
-    #     task_id='load_to_db',
-    #     application='/opt/airflow/scripts/refined2db/biomes.py',
-    #     conn_id='spark_default',
-    #     verbose=True,
-    #     jars='/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar,/usr/local/spark/jars/delta-spark_2.12-3.2.0.jar,/usr/local/spark/jars/delta-storage-3.2.0.jar,/usr/local/spark/jars/sedona-spark-shaded-3.5_2.12-1.7.0.jar,/usr/local/spark/jars/geotools-wrapper-1.7.0-28.5.jar,/usr/local/spark/jars/postgresql-42.7.5.jar'
-    # )
+    load_task = SparkSubmitOperator(
+        task_id='load_to_db',
+        application='/opt/airflow/scripts/refined2db/wildfires.py',
+        conn_id='spark_default',
+        verbose=True,
+        jars='/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar,/usr/local/spark/jars/delta-spark_2.12-3.2.0.jar,/usr/local/spark/jars/delta-storage-3.2.0.jar,/usr/local/spark/jars/sedona-spark-shaded-3.5_2.12-1.7.0.jar,/usr/local/spark/jars/geotools-wrapper-1.7.0-28.5.jar,/usr/local/spark/jars/postgresql-42.7.5.jar'
+    )
 
     # Definição da ordem de execução das tarefas
-    ingest_task >> process_task #>> refine_task >> load_task
+    ingest_task >> process_task >> refine_task >> load_task
