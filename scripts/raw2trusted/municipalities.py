@@ -7,7 +7,6 @@ from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, DoubleType, IntegerType
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 from sedona.spark import SedonaContext
-from sedona.spark import ST_GeomFromWKT
 
 # Adiciona a raiz do projeto ao sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,7 +31,7 @@ minio_client = Minio(
 
 spark = (
     SparkSession.builder
-        .appName("ReadCSVMinio")
+        .appName("MunicipalitiesRaw2Trusted")
         .config("spark.hadoop.fs.s3a.endpoint", f"http://{MINIO_ENDPOINT}")
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS_KEY)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET_KEY)
@@ -41,7 +40,10 @@ spark = (
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .config("spark.serializer", KryoSerializer.getName) 
-        .config("spark.kryo.registrator", SedonaKryoRegistrator.getName)  
+        .config("spark.kryo.registrator", SedonaKryoRegistrator.getName)
+        .config("spark.driver.memory", "3g") 
+        .config("spark.executor.memory", "3g") 
+        .config("spark.executor.cores", "4")
         .getOrCreate()
 )
 
@@ -54,8 +56,8 @@ df_spatial = df_spatial.select(
     col("NM_MUN").cast(StringType()).alias("nome_municipio"),
     col("SIGLA_UF").cast(StringType()).alias("sigla_uf"),
     col("AREA_KM2").cast(DoubleType()).alias("area_km2"),
-    ST_GeomFromWKT(col("geometry").cast(StringType())).alias("geom") 
-)
+    col("geometry").alias("geom") 
+).dropDuplicates()
 
 df_final = normalize_df(df_spatial)
 
