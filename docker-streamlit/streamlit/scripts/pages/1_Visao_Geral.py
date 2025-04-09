@@ -54,8 +54,8 @@ filter_options = get_filter_options()
 st.sidebar.header("Filtros")
 
 # Filtro de intervalo de tempo
-start_date = st.sidebar.date_input("Data Inicial", value=pd.to_datetime("2025-01-01"))
-end_date = st.sidebar.date_input("Data Final", value=pd.to_datetime("2025-01-31"))
+start_date = st.sidebar.date_input("Data Inicial", value=pd.to_datetime("2024-01-01"))
+end_date = st.sidebar.date_input("Data Final", value=pd.to_datetime("2024-12-31"))
 
 # Filtro de satélite
 satelites = filter_options["satelites"]
