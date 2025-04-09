@@ -1,4 +1,5 @@
 import os
+import psycopg2
 from minio import Minio
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
@@ -12,10 +13,37 @@ MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
 POSTGIS_USER = os.getenv("POSTGIS_USER")
 POSTGIS_PASSWORD = os.getenv("POSTGIS_PASSWORD")
 POSTGIS_DB = os.getenv("POSTGIS_DB")
+POSTGIS_HOST = "postgis"
+POSTGIS_PORT = 5432
+
+url_psycopg2 = f"postgresql://{POSTGIS_USER}:{POSTGIS_PASSWORD}@{POSTGIS_HOST}:{POSTGIS_PORT}/{POSTGIS_DB}"
+url_jdbc = f"jdbc:postgresql://{POSTGIS_HOST}:{POSTGIS_PORT}/{POSTGIS_DB}"
 
 table_name = 'wildfires.dm_data'
 
+create_table_query = f'''
+        CREATE TABLE IF NOT EXISTS {table_name} (
+        	id_data INTEGER,
+        	qtd_dia INTEGER,
+        	qtd_mes INTEGER,
+        	qtd_ano INTEGER,
+        	dt_data DATE
+);
+'''
+
+
 path = "s3a://refined/dm_data/"
+
+try:
+    connection = psycopg2.connect(url_psycopg2)
+    with connection.cursor() as cursor:
+        cursor.execute(create_table_query)
+        connection.commit()
+except Exception as e:
+    print(f"Erro ao conectar ou executar comando: {e}")
+finally:
+    if connection:
+        connection.close()
 
 minio_client = Minio(
     MINIO_ENDPOINT, 
@@ -37,23 +65,19 @@ spark = (
         .getOrCreate()
 )
 
-df_data = spark.read.format("delta").load(path)
 
-url = f"jdbc:postgresql://postgis:5432/{POSTGIS_DB}"
-
-properties = {
-    "user": f"{POSTGIS_USER}",
-    "password": f"{POSTGIS_PASSWORD}",
-    "driver": "org.postgresql.Driver"
-}
+df = spark.read.format("delta").load(path)
 
 (
-    df_data
-    .write
-    .jdbc(
-            url=url,
-            table='wildfires.dm_data', 
-            mode="overwrite", 
-            properties=properties
-    )
+    df
+        .write.format("jdbc")
+        .option("url", url_jdbc)
+        .option("dbtable", table_name)
+        .option("user", POSTGIS_USER)
+        .option("password", POSTGIS_PASSWORD)
+        .option("driver", "org.postgresql.Driver")
+        .option("truncate", "true")
+        .mode("overwrite")
+        .save()
 )
+
