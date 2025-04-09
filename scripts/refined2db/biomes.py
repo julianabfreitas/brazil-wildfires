@@ -1,9 +1,11 @@
 import os
+import psycopg2
 from minio import Minio
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 from sedona.spark import SedonaContext
+from pyspark.sql.functions import expr
 
 load_dotenv()
 
@@ -14,12 +16,38 @@ MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
 POSTGIS_USER = os.getenv("POSTGIS_USER")
 POSTGIS_PASSWORD = os.getenv("POSTGIS_PASSWORD")
 POSTGIS_DB = os.getenv("POSTGIS_DB")
+POSTGIS_HOST = "postgis"
+POSTGIS_PORT = 5432
+
+url_psycopg2 = f"postgresql://{POSTGIS_USER}:{POSTGIS_PASSWORD}@{POSTGIS_HOST}:{POSTGIS_PORT}/{POSTGIS_DB}"
+url_jdbc = f"jdbc:postgresql://{POSTGIS_HOST}:{POSTGIS_PORT}/{POSTGIS_DB}"
 
 table_name = 'wildfires.dm_bioma'
 geo_col = 'geom_bioma'
 srid = 4674
 
+create_table_query = f'''
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id_bioma INTEGER,
+            vl_codigo VARCHAR,
+            des_nome VARCHAR,
+            {geo_col} GEOMETRY
+        );
+'''
+
+
 path = "s3a://refined/dm_bioma/"
+
+try:
+    connection = psycopg2.connect(url_psycopg2)
+    with connection.cursor() as cursor:
+        cursor.execute(create_table_query)
+        connection.commit()
+except Exception as e:
+    print(f"Erro ao conectar ou executar comando: {e}")
+finally:
+    if connection:
+        connection.close()
 
 minio_client = Minio(
     MINIO_ENDPOINT, 
@@ -30,7 +58,7 @@ minio_client = Minio(
 
 spark = (
     SparkSession.builder
-        .appName("ReadCSVMinio")
+        .appName("BiomesRefined2DB")
         .config("spark.hadoop.fs.s3a.endpoint", f"http://{MINIO_ENDPOINT}")
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS_KEY)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET_KEY)
@@ -45,25 +73,18 @@ spark = (
 
 sedona = SedonaContext.create(spark) 
 
-df_bioma = spark.read.format("delta").load(path)
-
-df_bioma = df_bioma.withColumn("geom_bioma", df_bioma["geom_bioma"].cast("string"))
-
-url = f"jdbc:postgresql://postgis:5432/{POSTGIS_DB}"
-
-properties = {
-    "user": f"{POSTGIS_USER}",
-    "password": f"{POSTGIS_PASSWORD}",
-    "driver": "org.postgresql.Driver"
-}
+df = spark.read.format("delta").load(path)
 
 (
-    df_bioma
-    .write
-    .jdbc(
-            url=url,
-            table='wildfires.dm_bioma', 
-            mode="overwrite", 
-            properties=properties
-    )
+    df
+        .withColumn(geo_col, expr(f"ST_AsEWKB(ST_SetSRID({geo_col}, {srid}))"))
+        .write.format("jdbc")
+        .option("url", url_jdbc)
+        .option("dbtable", table_name)
+        .option("user", POSTGIS_USER)
+        .option("password", POSTGIS_PASSWORD)
+        .option("driver", "org.postgresql.Driver")
+        .option("truncate", "true")
+        .mode("overwrite")
+        .save()
 )

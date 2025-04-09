@@ -24,7 +24,7 @@ minio_client = Minio(
 
 spark = (
     SparkSession.builder
-        .appName("ReadCSVMinio")
+        .appName("BiomesTrusted2Refined")
         .config("spark.hadoop.fs.s3a.endpoint", f"http://{MINIO_ENDPOINT}")
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS_KEY)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET_KEY)

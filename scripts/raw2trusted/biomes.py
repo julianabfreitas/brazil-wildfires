@@ -32,7 +32,7 @@ minio_client = Minio(
 
 spark = (
     SparkSession.builder
-        .appName("ReadCSVMinio")
+        .appName("BiomesRaw2Trusted")
         .config("spark.hadoop.fs.s3a.endpoint", f"http://{MINIO_ENDPOINT}")
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS_KEY)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET_KEY)
@@ -53,8 +53,8 @@ df_spatial = df_spatial.select(
     col("ID1").cast(IntegerType()).alias("id"),
     col("COD_BIOMA").cast(StringType()).alias("code_bioma"),
     col("NOM_BIOMA").cast(StringType()).alias("nome_bioma"),
-    ST_GeomFromWKT(col("geometry").cast(StringType())).alias("geom") 
-)
+    col("geometry").alias("geom") 
+).dropDuplicates()
 
 df_final = normalize_df(df_spatial)
 
