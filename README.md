@@ -23,6 +23,7 @@ docker-compose -f docker-airflow/docker-compose.yml -f docker-minio/docker-compo
 ```
 
 ### 4) Executar os pipelines dos dados no airflow
+![Airflow](https://github.com/julianabfreitas/brazil-wildfires/blob/main/images/airflow-print.jpg)
 
 ### 5) Acessar [localhost:8501](http://localhost:8501/)
 
