@@ -83,3 +83,5 @@ docker-compose -f docker-airflow/docker-compose.yml -f docker-minio/docker-compo
 #### Aba de Gráficos
 ![Visão Geral](https://github.com/julianabfreitas/brazil-wildfires/blob/main/images/graficos.jpg)
 
+## Melhorias
+Uma possibilidade de melhoria seria a velocidade da aplicação. A tabela de queimadas tem mais de 33 milhões de registros, portanto é necessário melhorar a performance das consultas. 
